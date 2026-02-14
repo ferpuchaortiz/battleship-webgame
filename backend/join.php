@@ -19,19 +19,14 @@ $players[] = $newId;
 $board = [];
 for ($y = 0; $y < 10; $y++) {
     $row = [];
-    for ($x = 0; $x < 10; $x++) {
-        $row[] = 0;
-    }
+    for ($x = 0; $x < 10; $x++) $row[] = 0;
     $board[] = $row;
 }
 
 $boards[$newId] = $board;
-
 $game['ready'][$newId] = false;
 
-if ($game['turn'] === null) {
-    $game['turn'] = $newId;
-}
+if ($game['turn'] === null) $game['turn'] = $newId;
 
 file_put_contents($playersFile, json_encode($players));
 file_put_contents($boardsFile, json_encode($boards));

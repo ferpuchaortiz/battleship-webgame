@@ -21,9 +21,7 @@ function createEmptyBoard() {
   const board = [];
   for (let y = 0; y < 10; y++) {
     const row = [];
-    for (let x = 0; x < 10; x++) {
-      row.push(0);
-    }
+    for (let x = 0; x < 10; x++) row.push(0);
     board.push(row);
   }
   return board;
@@ -34,8 +32,8 @@ let localBoard = createEmptyBoard();
 /* Orientación */
 const orientationBtn = document.getElementById("orientationBtn");
 orientationBtn.addEventListener("click", () => {
-  orientation = (orientation === "H") ? "V" : "H";
-  orientationBtn.textContent = (orientation === "H") ? "Horizontal" : "Vertical";
+  orientation = orientation === "H" ? "V" : "H";
+  orientationBtn.textContent = orientation === "H" ? "Horizontal" : "Vertical";
 });
 
 /* Selección de barcos */
@@ -65,9 +63,7 @@ readyBtn.addEventListener("click", async () => {
       })
     });
     const data = await res.json();
-    if (!data.success) {
-      statusDiv.textContent = data.message || "Error al marcar listo.";
-    }
+    if (!data.success) statusDiv.textContent = data.message;
   } catch (err) {
     console.error(err);
     statusDiv.textContent = "Error al comunicar estado listo.";
@@ -76,23 +72,19 @@ readyBtn.addEventListener("click", async () => {
 
 /* Unirse */
 joinBtn.addEventListener("click", async () => {
-  statusDiv.textContent = "Uniéndose a la partida...";
+  statusDiv.textContent = "Uniéndose...";
   try {
     const res = await fetch("backend/join.php");
     const data = await res.json();
     if (data.success) {
       playerId = data.playerId;
-      statusDiv.textContent = `Te uniste como jugador ${playerId}`;
       playerInfo.textContent = `Tu ID: ${playerId}`;
       joinBtn.classList.add("hidden");
       gameArea.classList.remove("hidden");
       startPolling();
-    } else {
-      statusDiv.textContent = data.message || "No se pudo unir.";
     }
   } catch (err) {
     console.error(err);
-    statusDiv.textContent = "Error al conectar.";
   }
 });
 
@@ -101,9 +93,10 @@ async function fetchState() {
   try {
     const res = await fetch("backend/state.php");
     const data = await res.json();
-    if (!data.success) return;
-    gameState = data;
-    renderGame();
+    if (data.success) {
+      gameState = data;
+      renderGame();
+    }
   } catch (err) {
     console.error(err);
   }
@@ -119,31 +112,32 @@ function renderGame() {
   if (!gameState || !playerId) return;
 
   const { players, boards, turn, ready } = gameState;
-  const allReady = players.length > 0 && players.every(pId => ready && ready[pId]);
+  const allReady = players.every(p => ready[p]);
 
   if (!allReady) {
     statusDiv.textContent = "Fase de colocación: esperando a todos...";
   } else {
-    statusDiv.textContent = (turn === playerId)
-      ? "Es tu turno (disparos)"
-      : `Turno del jugador ${turn}`;
+    statusDiv.textContent =
+      turn === playerId ? "Es tu turno (disparos)" : `Turno del jugador ${turn}`;
   }
-
-  playersList.innerHTML = `<p>Jugadores: ${players.join(", ")}</p>`;
 
   myBoardContainer.innerHTML = "";
   enemyBoardsContainer.innerHTML = "";
 
-  players.forEach((pId) => {
-    const boardData = (pId === playerId)
-      ? localBoard
-      : boards[pId];
+  players.forEach(pId => {
+    const isReady = ready[pId];
+
+    // FIX APLICADO:
+    // Antes de estar listo → usar localBoard
+    // Después de estar listo → usar backend
+    const boardData =
+      pId === playerId && !isReady ? localBoard : boards[pId];
 
     const title = document.createElement("p");
-    const isReady = ready && ready[pId];
-    title.textContent = (pId === playerId)
-      ? `Jugador ${pId} (Tú) ${isReady ? "[Listo]" : "[Colocando]"}`
-      : `Jugador ${pId} ${isReady ? "[Listo]" : "[Colocando]"}`;
+    title.textContent =
+      pId === playerId
+        ? `Jugador ${pId} (Tú) ${isReady ? "[Listo]" : "[Colocando]"}`
+        : `Jugador ${pId} ${isReady ? "[Listo]" : "[Colocando]"}`;
 
     const boardDiv = document.createElement("div");
     boardDiv.className = "board";
@@ -159,18 +153,14 @@ function renderGame() {
         if (cell === 2) cellDiv.classList.add("hit");
         if (cell === 3) cellDiv.classList.add("miss");
 
-        if (pId === playerId && placingShips && !(ready && ready[playerId])) {
-          cellDiv.style.cursor = "pointer";
+        // Colocación
+        if (pId === playerId && placingShips && !isReady) {
           cellDiv.addEventListener("click", () => placeShipAt(x, y));
         }
 
-        if (allReady && pId !== playerId && gameState.turn === playerId) {
-          cellDiv.style.cursor = "pointer";
+        // Disparos
+        if (allReady && pId !== playerId && turn === playerId) {
           cellDiv.addEventListener("click", () => shoot(pId, x, y));
-        }
-
-        if (pId !== playerId && (!allReady || gameState.turn !== playerId)) {
-          cellDiv.classList.add("disabled");
         }
 
         boardDiv.appendChild(cellDiv);
@@ -220,11 +210,8 @@ function placeShipAt(x, y) {
     localBoard[cy][cx] = 1;
   }
 
-  statusDiv.textContent = `Barco de ${selectedShipSize} colocado.`;
-
   selectedShipSize = null;
   document.querySelectorAll(".shipBtn").forEach(b => b.classList.remove("selected"));
-
   renderGame();
 }
 
@@ -240,23 +227,29 @@ async function shoot(targetPlayerId, x, y) {
     });
 
     const data = await res.json();
-    statusDiv.textContent = data.message;
+
+    if (!data.success) {
+      statusDiv.textContent = data.message;
+      return;
+    }
+
+    if (data.sunk) {
+      statusDiv.textContent = `🔥 ${data.message}`;
+    } else {
+      statusDiv.textContent = data.message;
+    }
 
     fetchState();
+
   } catch (err) {
     console.error(err);
     statusDiv.textContent = "Error al disparar.";
   }
 }
 
+
 /* Reset */
 resetBtn.addEventListener("click", async () => {
-  statusDiv.textContent = "Reiniciando...";
-  try {
-    const res = await fetch("backend/reset.php");
-    const data = await res.json();
-    if (data.success) location.reload();
-  } catch (err) {
-    console.error(err);
-  }
+  await fetch("backend/reset.php");
+  location.reload();
 });
