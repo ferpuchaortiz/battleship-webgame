@@ -9,6 +9,7 @@ const gameArea = document.getElementById("gameArea");
 const playerInfo = document.getElementById("playerInfo");
 const playersList = document.getElementById("playersList");
 const boardsContainer = document.getElementById("boardsContainer");
+const resetBtn = document.getElementById("resetBtn");
 
 function createEmptyBoard() {
   const board = [];
@@ -70,6 +71,12 @@ function renderGame() {
   statusDiv.textContent = (turn === playerId)
     ? "Es tu turno"
     : `Turno del jugador ${turn}`;
+
+  if (playerId === 1) {
+    resetBtn.classList.remove("hidden");
+  } else {
+    resetBtn.classList.add("hidden");
+  }
 
   playersList.innerHTML = `<p>Jugadores conectados: ${players.join(", ")}</p>`;
 
@@ -148,3 +155,22 @@ async function shoot(targetPlayerId, x, y) {
     statusDiv.textContent = "Error al enviar disparo.";
   }
 }
+
+resetBtn.addEventListener("click", async () => {
+  statusDiv.textContent = "Reiniciando partida...";
+  try {
+    const res = await fetch("backend/reset.php");
+    const data = await res.json();
+    if (data.success) {
+      statusDiv.textContent = "Partida reiniciada. Recargando...";
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      statusDiv.textContent = "No se pudo reiniciar.";
+    }
+  } catch (err) {
+    console.error(err);
+    statusDiv.textContent = "Error al reiniciar.";
+  }
+});
