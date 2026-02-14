@@ -35,41 +35,67 @@ body {
   height: 24px;
   background-color: #1b2a3a;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
+/* Barco propio */
 .cell.own {
   background-color: #2ecc71;
 }
 
+/* Impacto */
 .cell.hit {
   background-color: #e74c3c;
+  animation: hitFlash 0.25s ease-out, hitShake 0.3s ease-out;
   box-shadow: 0 0 6px #ff7675;
-  transform: scale(1.05);
-  animation: hitPulse 0.3s ease-out;
 }
 
+@keyframes hitFlash {
+  0% { background-color: #ffb3b3; }
+  100% { background-color: #e74c3c; }
+}
+
+@keyframes hitShake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 2px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Agua */
 .cell.miss {
   background-color: #3498db;
   opacity: 0.8;
+  animation: splash 0.4s ease-out;
 }
 
+@keyframes splash {
+  0% { transform: scale(0.6); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* Hundido */
 .cell.sunk {
-  background-color: #8b0000; /* rojo oscuro */
+  background-color: #8b0000;
   border: 1px solid #ffaaaa;
-  box-shadow: 0 0 6px #ff4444;
+  box-shadow: 0 0 8px #ff4444;
+  animation: sunkPulse 1s ease-in-out infinite alternate;
 }
 
-@keyframes hitPulse {
-  0% { transform: scale(0.9); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1.0); }
+@keyframes sunkPulse {
+  0% { box-shadow: 0 0 4px #ff4444; }
+  100% { box-shadow: 0 0 10px #ff7777; }
 }
 
+/* Celdas deshabilitadas */
 .cell.disabled {
   opacity: 0.4;
   cursor: not-allowed !important;
 }
 
+/* Selector de barcos */
 #shipSelector {
   margin: 20px 0;
 }
@@ -89,6 +115,7 @@ body {
   font-weight: bold;
 }
 
+/* Botón de orientación */
 #orientationBtn {
   margin-left: 5px;
   padding: 4px 10px;
@@ -99,6 +126,7 @@ body {
   cursor: pointer;
 }
 
+/* Botón listo */
 #readyBtn {
   margin-top: 10px;
   padding: 6px 14px;
