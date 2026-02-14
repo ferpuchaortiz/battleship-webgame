@@ -37,12 +37,10 @@ body {
   cursor: pointer;
 }
 
-/* Barco propio */
 .cell.own {
   background-color: #2ecc71;
 }
 
-/* Impacto */
 .cell.hit {
   background-color: #e74c3c;
   box-shadow: 0 0 6px #ff7675;
@@ -50,26 +48,22 @@ body {
   animation: hitPulse 0.3s ease-out;
 }
 
-/* Agua */
 .cell.miss {
   background-color: #3498db;
   opacity: 0.8;
 }
 
-/* Animación de impacto */
 @keyframes hitPulse {
   0% { transform: scale(0.9); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1.0); }
 }
 
-/* Celdas deshabilitadas */
 .cell.disabled {
   opacity: 0.4;
   cursor: not-allowed !important;
 }
 
-/* Selector de barcos */
 #shipSelector {
   margin: 20px 0;
 }
@@ -89,7 +83,6 @@ body {
   font-weight: bold;
 }
 
-/* Botón de orientación */
 #orientationBtn {
   margin-left: 5px;
   padding: 4px 10px;
@@ -100,7 +93,6 @@ body {
   cursor: pointer;
 }
 
-/* Botón listo */
 #readyBtn {
   margin-top: 10px;
   padding: 6px 14px;

@@ -13,11 +13,9 @@ $players = json_decode(file_get_contents($playersFile), true);
 $boards = json_decode(file_get_contents($boardsFile), true);
 $game = json_decode(file_get_contents($gameFile), true);
 
-// Nuevo jugador
 $newId = count($players) > 0 ? max($players) + 1 : 1;
 $players[] = $newId;
 
-// Crear tablero vacío 10x10
 $board = [];
 for ($y = 0; $y < 10; $y++) {
     $row = [];
@@ -29,10 +27,6 @@ for ($y = 0; $y < 10; $y++) {
 
 $boards[$newId] = $board;
 
-if (!isset($game['ready'])) {
-    $game['ready'] = [];
-}
-
 $game['ready'][$newId] = false;
 
 if ($game['turn'] === null) {
@@ -43,7 +37,4 @@ file_put_contents($playersFile, json_encode($players));
 file_put_contents($boardsFile, json_encode($boards));
 file_put_contents($gameFile, json_encode($game));
 
-echo json_encode([
-    "success" => true,
-    "playerId" => $newId
-]);
+echo json_encode(["success" => true, "playerId" => $newId]);

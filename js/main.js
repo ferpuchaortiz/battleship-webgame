@@ -15,7 +15,7 @@ const readyBtn = document.getElementById("readyBtn");
 
 let selectedShipSize = null;
 let placingShips = true;
-let orientation = "H"; // H = horizontal, V = vertical
+let orientation = "H";
 
 function createEmptyBoard() {
   const board = [];
@@ -29,22 +29,16 @@ function createEmptyBoard() {
   return board;
 }
 
-// Tablero local para evitar que desaparezcan los barcos
 let localBoard = createEmptyBoard();
 
-/* -------------------------
-   Botón de orientación
--------------------------- */
+/* Orientación */
 const orientationBtn = document.getElementById("orientationBtn");
-
 orientationBtn.addEventListener("click", () => {
   orientation = (orientation === "H") ? "V" : "H";
   orientationBtn.textContent = (orientation === "H") ? "Horizontal" : "Vertical";
 });
 
-/* -------------------------
-   Selección de barcos
--------------------------- */
+/* Selección de barcos */
 document.querySelectorAll(".shipBtn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".shipBtn").forEach(b => b.classList.remove("selected"));
@@ -54,20 +48,21 @@ document.querySelectorAll(".shipBtn").forEach(btn => {
   });
 });
 
-/* -------------------------
-   Botón "Listo"
--------------------------- */
+/* Botón Listo */
 readyBtn.addEventListener("click", async () => {
   placingShips = false;
   readyBtn.classList.add("disabled");
   readyBtn.disabled = true;
-  statusDiv.textContent = "Marcado como listo. Esperando a otros jugadores...";
+  statusDiv.textContent = "Marcado como listo. Enviando tablero...";
 
   try {
     const res = await fetch("backend/ready.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerId })
+      body: JSON.stringify({
+        playerId,
+        board: localBoard
+      })
     });
     const data = await res.json();
     if (!data.success) {
@@ -79,9 +74,7 @@ readyBtn.addEventListener("click", async () => {
   }
 });
 
-/* -------------------------
-   Unirse a la partida
--------------------------- */
+/* Unirse */
 joinBtn.addEventListener("click", async () => {
   statusDiv.textContent = "Uniéndose a la partida...";
   try {
@@ -95,17 +88,15 @@ joinBtn.addEventListener("click", async () => {
       gameArea.classList.remove("hidden");
       startPolling();
     } else {
-      statusDiv.textContent = data.message || "No se pudo unir a la partida.";
+      statusDiv.textContent = data.message || "No se pudo unir.";
     }
   } catch (err) {
     console.error(err);
-    statusDiv.textContent = "Error al conectar con el servidor.";
+    statusDiv.textContent = "Error al conectar.";
   }
 });
 
-/* -------------------------
-   Polling del estado
--------------------------- */
+/* Polling */
 async function fetchState() {
   try {
     const res = await fetch("backend/state.php");
@@ -123,31 +114,22 @@ function startPolling() {
   setInterval(fetchState, 1000);
 }
 
-/* -------------------------
-   Renderizado del juego
--------------------------- */
+/* Render */
 function renderGame() {
   if (!gameState || !playerId) return;
 
   const { players, boards, turn, ready } = gameState;
-
   const allReady = players.length > 0 && players.every(pId => ready && ready[pId]);
 
   if (!allReady) {
-    statusDiv.textContent = "Fase de colocación: esperando a que todos estén listos.";
+    statusDiv.textContent = "Fase de colocación: esperando a todos...";
   } else {
     statusDiv.textContent = (turn === playerId)
-      ? "Es tu turno (fase de disparos)"
-      : `Turno del jugador ${turn} (fase de disparos)`;
+      ? "Es tu turno (disparos)"
+      : `Turno del jugador ${turn}`;
   }
 
-  if (playerId === 1) {
-    resetBtn.classList.remove("hidden");
-  } else {
-    resetBtn.classList.add("hidden");
-  }
-
-  playersList.innerHTML = `<p>Jugadores conectados: ${players.join(", ")}</p>`;
+  playersList.innerHTML = `<p>Jugadores: ${players.join(", ")}</p>`;
 
   myBoardContainer.innerHTML = "";
   enemyBoardsContainer.innerHTML = "";
@@ -173,35 +155,22 @@ function renderGame() {
 
         const cell = boardData[y][x];
 
-        if (pId === playerId && cell === 1) {
-          cellDiv.classList.add("own");
-        }
+        if (pId === playerId && cell === 1) cellDiv.classList.add("own");
+        if (cell === 2) cellDiv.classList.add("hit");
+        if (cell === 3) cellDiv.classList.add("miss");
 
-        if (cell === 2) {
-          cellDiv.classList.add("hit");
-        } else if (cell === 3) {
-          cellDiv.classList.add("miss");
-        }
-
-        // Colocación de barcos
         if (pId === playerId && placingShips && !(ready && ready[playerId])) {
           cellDiv.style.cursor = "pointer";
-          cellDiv.addEventListener("click", () => {
-            placeShipAt(x, y);
-          });
+          cellDiv.addEventListener("click", () => placeShipAt(x, y));
         }
 
-        // Disparos: solo si todos están listos
         if (allReady && pId !== playerId && gameState.turn === playerId) {
           cellDiv.style.cursor = "pointer";
-          cellDiv.addEventListener("click", () => {
-            shoot(pId, x, y);
-          });
+          cellDiv.addEventListener("click", () => shoot(pId, x, y));
         }
 
         if (pId !== playerId && (!allReady || gameState.turn !== playerId)) {
           cellDiv.classList.add("disabled");
-          cellDiv.style.cursor = "not-allowed";
         }
 
         boardDiv.appendChild(cellDiv);
@@ -218,34 +187,29 @@ function renderGame() {
   });
 }
 
-/* -------------------------
-   Colocar barco con orientación
--------------------------- */
+/* Colocar barco */
 function placeShipAt(x, y) {
   if (!selectedShipSize) {
-    statusDiv.textContent = "Selecciona un barco primero.";
+    statusDiv.textContent = "Selecciona un barco.";
     return;
   }
 
   const board = localBoard;
 
-  if (orientation === "H") {
-    if (x + selectedShipSize > 10) {
-      statusDiv.textContent = "El barco no cabe horizontalmente.";
-      return;
-    }
-  } else {
-    if (y + selectedShipSize > 10) {
-      statusDiv.textContent = "El barco no cabe verticalmente.";
-      return;
-    }
+  if (orientation === "H" && x + selectedShipSize > 10) {
+    statusDiv.textContent = "No cabe horizontal.";
+    return;
+  }
+  if (orientation === "V" && y + selectedShipSize > 10) {
+    statusDiv.textContent = "No cabe vertical.";
+    return;
   }
 
   for (let i = 0; i < selectedShipSize; i++) {
     const cx = orientation === "H" ? x + i : x;
     const cy = orientation === "H" ? y : y + i;
     if (board[cy][cx] === 1) {
-      statusDiv.textContent = "El barco se superpone con otro.";
+      statusDiv.textContent = "Se superpone.";
       return;
     }
   }
@@ -256,7 +220,7 @@ function placeShipAt(x, y) {
     localBoard[cy][cx] = 1;
   }
 
-  statusDiv.textContent = `Barco de tamaño ${selectedShipSize} colocado.`;
+  statusDiv.textContent = `Barco de ${selectedShipSize} colocado.`;
 
   selectedShipSize = null;
   document.querySelectorAll(".shipBtn").forEach(b => b.classList.remove("selected"));
@@ -264,65 +228,35 @@ function placeShipAt(x, y) {
   renderGame();
 }
 
-/* -------------------------
-   Disparar
--------------------------- */
+/* Disparar */
 async function shoot(targetPlayerId, x, y) {
-  if (!playerId) return;
-  statusDiv.textContent = `Disparando a jugador ${targetPlayerId} (${x}, ${y})...`;
+  statusDiv.textContent = `Disparando a ${targetPlayerId}...`;
+
   try {
     const res = await fetch("backend/shoot.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        shooter: playerId,
-        target: targetPlayerId,
-        x,
-        y,
-      }),
+      body: JSON.stringify({ shooter: playerId, target: targetPlayerId, x, y })
     });
+
     const data = await res.json();
-    if (data.success) {
-      const lastMessage = data.message || "Disparo realizado.";
-      statusDiv.textContent = lastMessage;
+    statusDiv.textContent = data.message;
 
-      setTimeout(() => {
-        if (gameState) {
-          const { turn } = gameState;
-          statusDiv.textContent = (turn === playerId)
-            ? "Es tu turno (fase de disparos)"
-            : `Turno del jugador ${turn} (fase de disparos)`;
-        }
-      }, 1200);
-
-      fetchState();
-    } else {
-      statusDiv.textContent = data.message || "No se pudo disparar.";
-    }
+    fetchState();
   } catch (err) {
     console.error(err);
-    statusDiv.textContent = "Error al enviar disparo.";
+    statusDiv.textContent = "Error al disparar.";
   }
 }
 
-/* -------------------------
-   Reiniciar partida
--------------------------- */
+/* Reset */
 resetBtn.addEventListener("click", async () => {
-  statusDiv.textContent = "Reiniciando partida...";
+  statusDiv.textContent = "Reiniciando...";
   try {
     const res = await fetch("backend/reset.php");
     const data = await res.json();
-    if (data.success) {
-      statusDiv.textContent = "Partida reiniciada. Recargando...";
-      setTimeout(() => {
-        location.reload();
-      }, 1000);
-    } else {
-      statusDiv.textContent = "No se pudo reiniciar.";
-    }
+    if (data.success) location.reload();
   } catch (err) {
     console.error(err);
-    statusDiv.textContent = "Error al reiniciar.";
   }
 });
