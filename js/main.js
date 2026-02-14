@@ -155,7 +155,18 @@ async function shoot(targetPlayerId, x, y) {
     });
     const data = await res.json();
     if (data.success) {
-      statusDiv.textContent = data.message || "Disparo realizado.";
+      const lastMessage = data.message || "Disparo realizado.";
+      statusDiv.textContent = lastMessage;
+
+      setTimeout(() => {
+        if (gameState) {
+          const { turn } = gameState;
+          statusDiv.textContent = (turn === playerId)
+            ? "Es tu turno"
+            : `Turno del jugador ${turn}`;
+        }
+      }, 1200);
+
       fetchState();
     } else {
       statusDiv.textContent = data.message || "No se pudo disparar.";
