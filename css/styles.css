@@ -141,3 +141,45 @@ body {
   background-color: #7f8c8d;
   cursor: not-allowed;
 }
+
+/* Historial de batalla */
+.battle-log {
+  width: 80%;
+  max-width: 600px;
+  margin: 20px auto;
+  background-color: #111a28;
+  border: 1px solid #3a4a5a;
+  padding: 10px;
+  height: 180px;
+  overflow-y: auto;
+  text-align: left;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.battle-log-entry {
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  border-left: 3px solid #2ecc71;
+}
+
+.battle-log-entry.hit {
+  border-left-color: #e74c3c;
+}
+
+.battle-log-entry.miss {
+  border-left-color: #3498db;
+}
+
+.battle-log-entry.sunk {
+  border-left-color: #ff4444;
+}
+
+.battle-log-entry.eliminated {
+  border-left-color: #ffcc00;
+}
+
+.battle-log-entry.winner {
+  border-left-color: #9b59b6;
+  font-weight: bold;
+}

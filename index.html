@@ -2,50 +2,50 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Battleship Multijugador – FFA</title>
+  <title>Battleship FFA</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <h1>Battleship Multijugador – Todos contra todos</h1>
-
   <div id="app">
+    <h1>Battleship Multijugador FFA</h1>
+
     <button id="joinBtn">Unirse a la partida</button>
+    <button id="resetBtn">Reiniciar partida</button>
+
     <div id="status"></div>
+    <div id="playerInfo"></div>
+    <div id="playersList"></div>
 
     <div id="gameArea" class="hidden">
-      <h2 id="playerInfo"></h2>
-      <div id="playersList"></div>
-
-      <button id="resetBtn" class="hidden">Reiniciar partida</button>
-
-      <h3>Tu tablero</h3>
-
-      <!-- Selector de barcos -->
       <div id="shipSelector">
-        <h4>Selecciona un barco</h4>
-
-        <p>
-          Orientación:
-          <button id="orientationBtn">Horizontal</button>
-        </p>
-
+        <span>Selecciona un barco:</span>
         <button class="shipBtn" data-size="5">Portaaviones (5)</button>
         <button class="shipBtn" data-size="4">Acorazado (4)</button>
         <button class="shipBtn" data-size="3">Crucero (3)</button>
         <button class="shipBtn" data-size="3">Submarino (3)</button>
         <button class="shipBtn" data-size="2">Destructor (2)</button>
 
-        <div>
-          <button id="readyBtn">Listo (terminé de colocar)</button>
-        </div>
+        <button id="orientationBtn">Horizontal</button>
+        <button id="readyBtn">Listo</button>
       </div>
 
+      <h3>Tu tablero</h3>
       <div id="myBoardContainer"></div>
 
       <h3>Tableros enemigos</h3>
       <div id="enemyBoardsContainer"></div>
+
+      <h3>Historial de Batalla</h3>
+      <div id="battleLog" class="battle-log"></div>
     </div>
   </div>
+
+  <!-- Sonidos -->
+  <audio id="soundExplosion" src="sounds/explosion.mp3"></audio>
+  <audio id="soundWater" src="sounds/water.mp3"></audio>
+  <audio id="soundSunk" src="sounds/sunk.mp3"></audio>
+  <audio id="soundEliminated" src="sounds/eliminated.mp3"></audio>
+  <audio id="soundVictory" src="sounds/victory.mp3"></audio>
 
   <script src="js/main.js"></script>
 </body>

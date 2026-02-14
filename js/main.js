@@ -12,6 +12,7 @@ const myBoardContainer = document.getElementById("myBoardContainer");
 const enemyBoardsContainer = document.getElementById("enemyBoardsContainer");
 const resetBtn = document.getElementById("resetBtn");
 const readyBtn = document.getElementById("readyBtn");
+const battleLog = document.getElementById("battleLog");
 
 let selectedShipSize = null;
 let placingShips = true;
@@ -22,13 +23,23 @@ function createEmptyBoard() {
   for (let y = 0; y < 10; y++) {
     const row = [];
     for (let x = 0; x < 10; x++) row.push(0);
-    row;
     board.push(row);
   }
   return board;
 }
 
 let localBoard = createEmptyBoard();
+
+/* -------------------------
+   HISTORIAL DE BATALLA
+-------------------------- */
+function addLog(message, type = "") {
+  if (!battleLog) return;
+  const entry = document.createElement("div");
+  entry.className = "battle-log-entry " + type;
+  entry.textContent = message;
+  battleLog.prepend(entry);
+}
 
 /* Orientación */
 const orientationBtn = document.getElementById("orientationBtn");
@@ -65,6 +76,7 @@ readyBtn.addEventListener("click", async () => {
     });
     const data = await res.json();
     if (!data.success) statusDiv.textContent = data.message;
+    else addLog(`Jugador ${playerId} está listo.`, "info");
   } catch (err) {
     console.error(err);
     statusDiv.textContent = "Error al comunicar estado listo.";
@@ -135,7 +147,6 @@ function renderGame() {
   players.forEach(pId => {
     const isReady = ready[pId];
 
-    // FIX: antes de listo → localBoard, después → backend
     const boardData =
       pId === playerId && !isReady ? localBoard : boards[pId];
 
@@ -242,8 +253,33 @@ async function shoot(targetPlayerId, x, y) {
 
     statusDiv.textContent = data.message;
 
+    // LOG
+    addLog(
+      `Jugador ${playerId} disparó a Jugador ${targetPlayerId} (${x},${y}) → ${data.message}`,
+      data.sunk ? "sunk" : data.hit ? "hit" : "miss"
+    );
+
+    // SONIDOS
+    if (data.hit && !data.sunk) {
+      document.getElementById("soundExplosion").play();
+    }
+
+    if (!data.hit) {
+      document.getElementById("soundWater").play();
+    }
+
+    if (data.sunk) {
+      document.getElementById("soundSunk").play();
+    }
+
+    if (data.eliminated) {
+      document.getElementById("soundEliminated").play();
+      addLog(`Jugador ${targetPlayerId} fue eliminado`, "eliminated");
+    }
+
     if (data.winner) {
-      statusDiv.textContent = `🏆 ${data.message}`;
+      document.getElementById("soundVictory").play();
+      addLog(`🏆 ¡Jugador ${data.winner} ganó la partida!`, "winner");
       return;
     }
 
