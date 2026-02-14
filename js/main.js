@@ -1,0 +1,127 @@
+console.log("Battleship Multijugador FFA iniciado");
+
+let playerId = null;
+let gameState = null;
+
+const joinBtn = document.getElementById("joinBtn");
+const statusDiv = document.getElementById("status");
+const gameArea = document.getElementById("gameArea");
+const playerInfo = document.getElementById("playerInfo");
+const playersList = document.getElementById("playersList");
+const boardsContainer = document.getElementById("boardsContainer");
+
+joinBtn.addEventListener("click", async () => {
+  statusDiv.textContent = "Uniéndose a la partida...";
+  try {
+    const res = await fetch("backend/join.php");
+    const data = await res.json();
+    if (data.success) {
+      playerId = data.playerId;
+      statusDiv.textContent = `Te uniste como jugador ${playerId}`;
+      playerInfo.textContent = `Tu ID: ${playerId}`;
+      joinBtn.classList.add("hidden");
+      gameArea.classList.remove("hidden");
+      startPolling();
+    } else {
+      statusDiv.textContent = data.message || "No se pudo unir a la partida.";
+    }
+  } catch (err) {
+    console.error(err);
+    statusDiv.textContent = "Error al conectar con el servidor.";
+  }
+});
+
+async function fetchState() {
+  try {
+    const res = await fetch("backend/state.php");
+    const data = await res.json();
+    if (!data.success) return;
+    gameState = data;
+    renderGame();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function startPolling() {
+  fetchState();
+  setInterval(fetchState, 1000);
+}
+
+function renderGame() {
+  if (!gameState || !playerId) return;
+
+  const { players, boards, turn } = gameState;
+
+  playersList.innerHTML = `<p>Turno actual: Jugador ${turn}</p>
+    <p>Jugadores conectados: ${players.join(", ")}</p>`;
+
+  boardsContainer.innerHTML = "";
+
+  players.forEach((pId) => {
+    const boardData = boards[pId];
+    if (!boardData) return;
+
+    const boardDiv = document.createElement("div");
+    boardDiv.className = "board";
+
+    const title = document.createElement("p");
+    title.textContent = `Tablero de jugador ${pId}` + (pId === playerId ? " (Tú)" : "");
+    boardsContainer.appendChild(title);
+    boardsContainer.appendChild(boardDiv);
+
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 10; x++) {
+        const cellDiv = document.createElement("div");
+        cellDiv.className = "cell";
+
+        const cell = boardData[y][x];
+
+        if (pId === playerId && cell === 1) {
+          cellDiv.classList.add("own");
+        }
+
+        if (cell === 2) {
+          cellDiv.classList.add("hit");
+        } else if (cell === 3) {
+          cellDiv.classList.add("miss");
+        }
+
+        if (pId !== playerId && gameState.turn === playerId) {
+          cellDiv.addEventListener("click", () => {
+            shoot(pId, x, y);
+          });
+        }
+
+        boardDiv.appendChild(cellDiv);
+      }
+    }
+  });
+}
+
+async function shoot(targetPlayerId, x, y) {
+  if (!playerId) return;
+  statusDiv.textContent = `Disparando a jugador ${targetPlayerId} (${x}, ${y})...`;
+  try {
+    const res = await fetch("backend/shoot.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shooter: playerId,
+        target: targetPlayerId,
+        x,
+        y,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      statusDiv.textContent = data.message || "Disparo realizado.";
+      fetchState();
+    } else {
+      statusDiv.textContent = data.message || "No se pudo disparar.";
+    }
+  } catch (err) {
+    console.error(err);
+    statusDiv.textContent = "Error al enviar disparo.";
+  }
+}
