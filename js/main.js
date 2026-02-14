@@ -28,6 +28,7 @@ function createEmptyBoard() {
   return board;
 }
 
+// Tablero local para evitar que desaparezcan los barcos
 let localBoard = createEmptyBoard();
 
 /* -------------------------
@@ -120,8 +121,11 @@ function renderGame() {
   enemyBoardsContainer.innerHTML = "";
 
   players.forEach((pId) => {
-    const boardData = boards[pId];
-    if (!boardData) return;
+
+    // 🔥 Tu tablero usa localBoard
+    const boardData = (pId === playerId)
+      ? localBoard
+      : boards[pId];
 
     const title = document.createElement("p");
     title.textContent = (pId === playerId)
@@ -192,7 +196,7 @@ function placeShipAt(x, y) {
     return;
   }
 
-  const board = gameState.boards[playerId];
+  const board = localBoard; // 🔥 usamos tablero local
 
   // 1) Validar límites
   if (orientation === "H") {
@@ -217,11 +221,11 @@ function placeShipAt(x, y) {
     }
   }
 
-  // 3) Colocar barco
+  // 3) Colocar barco en localBoard
   for (let i = 0; i < selectedShipSize; i++) {
     const cx = orientation === "H" ? x + i : x;
     const cy = orientation === "H" ? y : y + i;
-    board[cy][cx] = 1;
+    localBoard[cy][cx] = 1;
   }
 
   statusDiv.textContent = `Barco de tamaño ${selectedShipSize} colocado.`;
