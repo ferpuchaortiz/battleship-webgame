@@ -9,9 +9,12 @@ $players = json_decode(file_get_contents($playersFile), true);
 $boards = json_decode(file_get_contents($boardsFile), true);
 $game = json_decode(file_get_contents($gameFile), true);
 
+$ready = isset($game['ready']) ? $game['ready'] : [];
+
 echo json_encode([
     "success" => true,
     "players" => $players,
     "boards" => $boards,
-    "turn" => $game['turn']
+    "turn" => $game['turn'],
+    "ready" => $ready
 ]);

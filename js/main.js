@@ -11,6 +11,7 @@ const playersList = document.getElementById("playersList");
 const myBoardContainer = document.getElementById("myBoardContainer");
 const enemyBoardsContainer = document.getElementById("enemyBoardsContainer");
 const resetBtn = document.getElementById("resetBtn");
+const readyBtn = document.getElementById("readyBtn");
 
 let selectedShipSize = null;
 let placingShips = true;
@@ -51,6 +52,32 @@ document.querySelectorAll(".shipBtn").forEach(btn => {
     selectedShipSize = parseInt(btn.dataset.size);
     statusDiv.textContent = `Barco seleccionado: tamaño ${selectedShipSize}`;
   });
+});
+
+/* -------------------------
+   Botón "Listo"
+-------------------------- */
+readyBtn.addEventListener("click", async () => {
+  // Podrías validar aquí que ya colocaste todos tus barcos
+  placingShips = false;
+  readyBtn.classList.add("disabled");
+  readyBtn.disabled = true;
+  statusDiv.textContent = "Marcado como listo. Esperando a otros jugadores...";
+
+  try {
+    const res = await fetch("backend/ready.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      statusDiv.textContent = data.message || "Error al marcar listo.";
+    }
+  } catch (err) {
+    console.error(err);
+    statusDiv.textContent = "Error al comunicar estado listo.";
+  }
 });
 
 /* -------------------------
@@ -103,11 +130,17 @@ function startPolling() {
 function renderGame() {
   if (!gameState || !playerId) return;
 
-  const { players, boards, turn } = gameState;
+  const { players, boards, turn, ready } = gameState;
 
-  statusDiv.textContent = (turn === playerId)
-    ? "Es tu turno"
-    : `Turno del jugador ${turn}`;
+  const allReady = players.length > 0 && players.every(pId => ready && ready[pId]);
+
+  if (!allReady) {
+    statusDiv.textContent = "Fase de colocación: esperando a que todos estén listos.";
+  } else {
+    statusDiv.textContent = (turn === playerId)
+      ? "Es tu turno (fase de disparos)"
+      : `Turno del jugador ${turn} (fase de disparos)`;
+  }
 
   if (playerId === 1) {
     resetBtn.classList.remove("hidden");
@@ -121,16 +154,15 @@ function renderGame() {
   enemyBoardsContainer.innerHTML = "";
 
   players.forEach((pId) => {
-
-    // 🔥 Tu tablero usa localBoard
     const boardData = (pId === playerId)
       ? localBoard
       : boards[pId];
 
     const title = document.createElement("p");
+    const isReady = ready && ready[pId];
     title.textContent = (pId === playerId)
-      ? `Jugador ${pId} (Tú)`
-      : `Jugador ${pId}`;
+      ? `Jugador ${pId} (Tú) ${isReady ? "[Listo]" : "[Colocando]"}`
+      : `Jugador ${pId} ${isReady ? "[Listo]" : "[Colocando]"}`;
 
     const boardDiv = document.createElement("div");
     boardDiv.className = "board";
@@ -152,23 +184,23 @@ function renderGame() {
           cellDiv.classList.add("miss");
         }
 
-        /* Colocación de barcos */
-        if (pId === playerId && placingShips) {
+        // Colocación de barcos (solo si aún estamos en fase de colocación local)
+        if (pId === playerId && placingShips && !(ready && ready[playerId])) {
           cellDiv.style.cursor = "pointer";
           cellDiv.addEventListener("click", () => {
             placeShipAt(x, y);
           });
         }
 
-        /* Disparos */
-        if (pId !== playerId && gameState.turn === playerId && !placingShips) {
+        // Disparos: solo si todos están listos y ya no estamos colocando
+        if (allReady && pId !== playerId && gameState.turn === playerId) {
           cellDiv.style.cursor = "pointer";
           cellDiv.addEventListener("click", () => {
             shoot(pId, x, y);
           });
         }
 
-        if (pId !== playerId && gameState.turn !== playerId) {
+        if (pId !== playerId && (!allReady || gameState.turn !== playerId)) {
           cellDiv.classList.add("disabled");
           cellDiv.style.cursor = "not-allowed";
         }
@@ -196,7 +228,7 @@ function placeShipAt(x, y) {
     return;
   }
 
-  const board = localBoard; // 🔥 usamos tablero local
+  const board = localBoard;
 
   // 1) Validar límites
   if (orientation === "H") {
@@ -262,8 +294,8 @@ async function shoot(targetPlayerId, x, y) {
         if (gameState) {
           const { turn } = gameState;
           statusDiv.textContent = (turn === playerId)
-            ? "Es tu turno"
-            : `Turno del jugador ${turn}`;
+            ? "Es tu turno (fase de disparos)"
+            : `Turno del jugador ${turn} (fase de disparos)`;
         }
       }, 1200);
 
