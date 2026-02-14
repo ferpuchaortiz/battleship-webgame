@@ -2,21 +2,26 @@
 header('Content-Type: application/json; charset=utf-8');
 
 $input = json_decode(file_get_contents('php://input'), true);
+
+$room = $input["room"] ?? null;
 $shooter = $input['shooter'];
 $target = $input['target'];
 $x = $input['x'];
 $y = $input['y'];
 
-$players = json_decode(file_get_contents(__DIR__ . '/players.json'), true);
-$boards = json_decode(file_get_contents(__DIR__ . '/boards.json'), true);
-$game = json_decode(file_get_contents(__DIR__ . '/game.json'), true);
+$dir = __DIR__ . "/rooms/$room";
 
-// Si ya hay ganador, no permitir más disparos
-if (isset($game['winner']) && $game['winner'] !== null) {
+$players = json_decode(file_get_contents("$dir/players.json"), true);
+$boards = json_decode(file_get_contents("$dir/boards.json"), true);
+$game = json_decode(file_get_contents("$dir/game.json"), true);
+
+// Si ya hay ganador
+if ($game['winner'] !== null) {
     echo json_encode(["success" => false, "message" => "La partida ya terminó."]);
     exit;
 }
 
+// Turno incorrecto
 if ($game['turn'] != $shooter) {
     echo json_encode(["success" => false, "message" => "No es tu turno."]);
     exit;
@@ -25,7 +30,7 @@ if ($game['turn'] != $shooter) {
 $board = $boards[$target];
 $cell = $board[$y][$x];
 
-if ($cell === 2 || $cell === 3 || $cell === 4) {
+if (in_array($cell, [2,3,4])) {
     echo json_encode(["success" => false, "message" => "Ya disparaste ahí."]);
     exit;
 }
@@ -33,14 +38,12 @@ if ($cell === 2 || $cell === 3 || $cell === 4) {
 $hit = false;
 $sunk = false;
 $eliminated = false;
-$winner = null;
 
 // Impacto
 if ($cell === 1) {
     $board[$y][$x] = 2;
     $hit = true;
 
-    // Detectar hundimiento
     if (isShipSunk($board, $x, $y)) {
         $sunk = true;
         markShipAsSunk($board, $x, $y);
@@ -56,24 +59,20 @@ if ($cell === 1) {
 
 $boards[$target] = $board;
 
-// ------------------------------
-// DETECTAR ELIMINACIÓN
-// ------------------------------
+// Eliminación
 if (!playerHasShips($board)) {
     $eliminated = true;
     $msg .= " ⚠️ El jugador $target ha sido eliminado.";
 
     $players = array_values(array_filter($players, fn($p) => $p != $target));
-    file_put_contents(__DIR__ . '/players.json', json_encode($players));
+    file_put_contents("$dir/players.json", json_encode($players));
 }
 
-// ------------------------------
-// DETECTAR GANADOR
-// ------------------------------
+// Ganador
 if (count($players) === 1) {
     $winner = $players[0];
     $game['winner'] = $winner;
-    file_put_contents(__DIR__ . '/game.json', json_encode($game));
+    file_put_contents("$dir/game.json", json_encode($game));
 
     echo json_encode([
         "success" => true,
@@ -86,15 +85,13 @@ if (count($players) === 1) {
     exit;
 }
 
-// ------------------------------
-// AVANZAR TURNO
-// ------------------------------
+// Avanzar turno
 $currentIndex = array_search($shooter, $players);
 $nextIndex = ($currentIndex + 1) % count($players);
 $game['turn'] = $players[$nextIndex];
 
-file_put_contents(__DIR__ . '/boards.json', json_encode($boards));
-file_put_contents(__DIR__ . '/game.json', json_encode($game));
+file_put_contents("$dir/boards.json", json_encode($boards));
+file_put_contents("$dir/game.json", json_encode($game));
 
 echo json_encode([
     "success" => true,
@@ -105,17 +102,14 @@ echo json_encode([
     "winner" => null
 ]);
 
-
 // ------------------------------
 // FUNCIONES AUXILIARES
 // ------------------------------
 
 function playerHasShips($board) {
-    foreach ($board as $row) {
-        foreach ($row as $cell) {
+    foreach ($board as $row)
+        foreach ($row as $cell)
             if ($cell === 1) return true;
-        }
-    }
     return false;
 }
 
@@ -138,14 +132,10 @@ function hasRemainingShipCells($board, $x, $y, &$visited) {
     foreach ($dirs as $d) {
         $nx = $x + $d[0];
         $ny = $y + $d[1];
-
-        if ($nx >= 0 && $nx < 10 && $ny >= 0 && $ny < 10) {
-            if (hasRemainingShipCells($board, $nx, $ny, $visited)) {
+        if ($nx >= 0 && $nx < 10 && $ny >= 0 && $ny < 10)
+            if (hasRemainingShipCells($board, $nx, $ny, $visited))
                 return true;
-            }
-        }
     }
-
     return false;
 }
 
@@ -159,19 +149,15 @@ function floodFillSunk(&$board, $x, $y, &$visited) {
     if (isset($visited[$key])) return;
     $visited[$key] = true;
 
-    $cell = $board[$y][$x];
-    if ($cell !== 2) return;
+    if ($board[$y][$x] !== 2) return;
 
-    // Marcar como hundido
     $board[$y][$x] = 4;
 
     $dirs = [[1,0],[-1,0],[0,1],[0,-1]];
     foreach ($dirs as $d) {
         $nx = $x + $d[0];
         $ny = $y + $d[1];
-
-        if ($nx >= 0 && $nx < 10 && $ny >= 0 && $ny < 10) {
+        if ($nx >= 0 && $nx < 10 && $ny >= 0 && $ny < 10)
             floodFillSunk($board, $nx, $ny, $visited);
-        }
     }
 }

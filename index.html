@@ -9,6 +9,19 @@
   <div id="app">
     <h1>Battleship Multijugador FFA</h1>
 
+    <!-- LOBBY -->
+    <h3>Lobby</h3>
+    <div id="lobbyArea">
+      <button id="createRoomBtn">Crear Sala</button>
+
+      <div>
+        <input type="text" id="roomCodeInput" placeholder="Código de sala" />
+        <button id="joinRoomBtn">Unirse a sala</button>
+      </div>
+
+      <div id="lobbyStatus"></div>
+    </div>
+
     <button id="joinBtn">Unirse a la partida</button>
     <button id="resetBtn">Reiniciar partida</button>
 
@@ -17,6 +30,8 @@
     <div id="playersList"></div>
 
     <div id="gameArea" class="hidden">
+
+      <!-- Selector de barcos -->
       <div id="shipSelector">
         <span>Selecciona un barco:</span>
         <button class="shipBtn" data-size="5">Portaaviones (5)</button>
@@ -37,6 +52,15 @@
 
       <h3>Historial de Batalla</h3>
       <div id="battleLog" class="battle-log"></div>
+
+      <h3>Chat</h3>
+      <div id="chatBox" class="chat-box"></div>
+
+      <div class="chat-input">
+        <input type="text" id="chatMessage" placeholder="Escribe un mensaje..." />
+        <button id="chatSendBtn">Enviar</button>
+      </div>
+
     </div>
   </div>
 
