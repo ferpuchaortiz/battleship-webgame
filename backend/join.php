@@ -7,7 +7,7 @@ $gameFile = __DIR__ . '/game.json';
 
 if (!file_exists($playersFile)) file_put_contents($playersFile, json_encode([]));
 if (!file_exists($boardsFile)) file_put_contents($boardsFile, json_encode(new stdClass()));
-if (!file_exists($gameFile)) file_put_contents($gameFile, json_encode(["turn" => null]));
+if (!file_exists($gameFile)) file_put_contents($gameFile, json_encode(["turn" => null, "ready" => new stdClass()]));
 
 $players = json_decode(file_get_contents($playersFile), true);
 $boards = json_decode(file_get_contents($boardsFile), true);
@@ -22,15 +22,19 @@ $board = [];
 for ($y = 0; $y < 10; $y++) {
     $row = [];
     for ($x = 0; $x < 10; $x++) {
-        $row[] = 0; // vacío
+        $row[] = 0;
     }
     $board[] = $row;
 }
 
-// Guardar tablero vacío (sin barcos automáticos)
 $boards[$newId] = $board;
 
-// Si es el primer jugador, le toca el turno
+if (!isset($game['ready'])) {
+    $game['ready'] = [];
+}
+
+$game['ready'][$newId] = false;
+
 if ($game['turn'] === null) {
     $game['turn'] = $newId;
 }

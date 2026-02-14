@@ -58,7 +58,6 @@ document.querySelectorAll(".shipBtn").forEach(btn => {
    Botón "Listo"
 -------------------------- */
 readyBtn.addEventListener("click", async () => {
-  // Podrías validar aquí que ya colocaste todos tus barcos
   placingShips = false;
   readyBtn.classList.add("disabled");
   readyBtn.disabled = true;
@@ -184,7 +183,7 @@ function renderGame() {
           cellDiv.classList.add("miss");
         }
 
-        // Colocación de barcos (solo si aún estamos en fase de colocación local)
+        // Colocación de barcos
         if (pId === playerId && placingShips && !(ready && ready[playerId])) {
           cellDiv.style.cursor = "pointer";
           cellDiv.addEventListener("click", () => {
@@ -192,7 +191,7 @@ function renderGame() {
           });
         }
 
-        // Disparos: solo si todos están listos y ya no estamos colocando
+        // Disparos: solo si todos están listos
         if (allReady && pId !== playerId && gameState.turn === playerId) {
           cellDiv.style.cursor = "pointer";
           cellDiv.addEventListener("click", () => {
@@ -230,7 +229,6 @@ function placeShipAt(x, y) {
 
   const board = localBoard;
 
-  // 1) Validar límites
   if (orientation === "H") {
     if (x + selectedShipSize > 10) {
       statusDiv.textContent = "El barco no cabe horizontalmente.";
@@ -243,7 +241,6 @@ function placeShipAt(x, y) {
     }
   }
 
-  // 2) Validar superposición
   for (let i = 0; i < selectedShipSize; i++) {
     const cx = orientation === "H" ? x + i : x;
     const cy = orientation === "H" ? y : y + i;
@@ -253,7 +250,6 @@ function placeShipAt(x, y) {
     }
   }
 
-  // 3) Colocar barco en localBoard
   for (let i = 0; i < selectedShipSize; i++) {
     const cx = orientation === "H" ? x + i : x;
     const cy = orientation === "H" ? y : y + i;
