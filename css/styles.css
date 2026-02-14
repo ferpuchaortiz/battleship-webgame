@@ -68,3 +68,34 @@ body {
   opacity: 0.4;
   cursor: not-allowed !important;
 }
+
+/* Selector de barcos */
+#shipSelector {
+  margin: 20px 0;
+}
+
+.shipBtn {
+  margin: 5px;
+  padding: 8px 12px;
+  background-color: #34495e;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.shipBtn.selected {
+  background-color: #2ecc71;
+  font-weight: bold;
+}
+
+/* Botón de orientación */
+#orientationBtn {
+  margin-left: 5px;
+  padding: 4px 10px;
+  background-color: #8e44ad;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

@@ -12,6 +12,10 @@ const myBoardContainer = document.getElementById("myBoardContainer");
 const enemyBoardsContainer = document.getElementById("enemyBoardsContainer");
 const resetBtn = document.getElementById("resetBtn");
 
+let selectedShipSize = null;
+let placingShips = true;
+let orientation = "H"; // H = horizontal, V = vertical
+
 function createEmptyBoard() {
   const board = [];
   for (let y = 0; y < 10; y++) {
@@ -26,6 +30,31 @@ function createEmptyBoard() {
 
 let localBoard = createEmptyBoard();
 
+/* -------------------------
+   Botón de orientación
+-------------------------- */
+const orientationBtn = document.getElementById("orientationBtn");
+
+orientationBtn.addEventListener("click", () => {
+  orientation = (orientation === "H") ? "V" : "H";
+  orientationBtn.textContent = (orientation === "H") ? "Horizontal" : "Vertical";
+});
+
+/* -------------------------
+   Selección de barcos
+-------------------------- */
+document.querySelectorAll(".shipBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".shipBtn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedShipSize = parseInt(btn.dataset.size);
+    statusDiv.textContent = `Barco seleccionado: tamaño ${selectedShipSize}`;
+  });
+});
+
+/* -------------------------
+   Unirse a la partida
+-------------------------- */
 joinBtn.addEventListener("click", async () => {
   statusDiv.textContent = "Uniéndose a la partida...";
   try {
@@ -47,6 +76,9 @@ joinBtn.addEventListener("click", async () => {
   }
 });
 
+/* -------------------------
+   Polling del estado
+-------------------------- */
 async function fetchState() {
   try {
     const res = await fetch("backend/state.php");
@@ -64,6 +96,9 @@ function startPolling() {
   setInterval(fetchState, 1000);
 }
 
+/* -------------------------
+   Renderizado del juego
+-------------------------- */
 function renderGame() {
   if (!gameState || !playerId) return;
 
@@ -113,7 +148,16 @@ function renderGame() {
           cellDiv.classList.add("miss");
         }
 
-        if (pId !== playerId && gameState.turn === playerId) {
+        /* Colocación de barcos */
+        if (pId === playerId && placingShips) {
+          cellDiv.style.cursor = "pointer";
+          cellDiv.addEventListener("click", () => {
+            placeShipAt(x, y);
+          });
+        }
+
+        /* Disparos */
+        if (pId !== playerId && gameState.turn === playerId && !placingShips) {
           cellDiv.style.cursor = "pointer";
           cellDiv.addEventListener("click", () => {
             shoot(pId, x, y);
@@ -139,6 +183,58 @@ function renderGame() {
   });
 }
 
+/* -------------------------
+   Colocar barco con orientación
+-------------------------- */
+function placeShipAt(x, y) {
+  if (!selectedShipSize) {
+    statusDiv.textContent = "Selecciona un barco primero.";
+    return;
+  }
+
+  const board = gameState.boards[playerId];
+
+  // 1) Validar límites
+  if (orientation === "H") {
+    if (x + selectedShipSize > 10) {
+      statusDiv.textContent = "El barco no cabe horizontalmente.";
+      return;
+    }
+  } else {
+    if (y + selectedShipSize > 10) {
+      statusDiv.textContent = "El barco no cabe verticalmente.";
+      return;
+    }
+  }
+
+  // 2) Validar superposición
+  for (let i = 0; i < selectedShipSize; i++) {
+    const cx = orientation === "H" ? x + i : x;
+    const cy = orientation === "H" ? y : y + i;
+    if (board[cy][cx] === 1) {
+      statusDiv.textContent = "El barco se superpone con otro.";
+      return;
+    }
+  }
+
+  // 3) Colocar barco
+  for (let i = 0; i < selectedShipSize; i++) {
+    const cx = orientation === "H" ? x + i : x;
+    const cy = orientation === "H" ? y : y + i;
+    board[cy][cx] = 1;
+  }
+
+  statusDiv.textContent = `Barco de tamaño ${selectedShipSize} colocado.`;
+
+  selectedShipSize = null;
+  document.querySelectorAll(".shipBtn").forEach(b => b.classList.remove("selected"));
+
+  renderGame();
+}
+
+/* -------------------------
+   Disparar
+-------------------------- */
 async function shoot(targetPlayerId, x, y) {
   if (!playerId) return;
   statusDiv.textContent = `Disparando a jugador ${targetPlayerId} (${x}, ${y})...`;
@@ -177,6 +273,9 @@ async function shoot(targetPlayerId, x, y) {
   }
 }
 
+/* -------------------------
+   Reiniciar partida
+-------------------------- */
 resetBtn.addEventListener("click", async () => {
   statusDiv.textContent = "Reiniciando partida...";
   try {

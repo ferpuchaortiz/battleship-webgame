@@ -13,26 +13,24 @@ $players = json_decode(file_get_contents($playersFile), true);
 $boards = json_decode(file_get_contents($boardsFile), true);
 $game = json_decode(file_get_contents($gameFile), true);
 
+// Nuevo jugador
 $newId = count($players) > 0 ? max($players) + 1 : 1;
 $players[] = $newId;
 
+// Crear tablero vacío 10x10
 $board = [];
 for ($y = 0; $y < 10; $y++) {
     $row = [];
     for ($x = 0; $x < 10; $x++) {
-        $row[] = 0;
+        $row[] = 0; // vacío
     }
     $board[] = $row;
 }
 
-for ($i = 0; $i < 5; $i++) {
-    $x = rand(0, 9);
-    $y = rand(0, 9);
-    $board[$y][$x] = 1;
-}
-
+// Guardar tablero vacío (sin barcos automáticos)
 $boards[$newId] = $board;
 
+// Si es el primer jugador, le toca el turno
 if ($game['turn'] === null) {
     $game['turn'] = $newId;
 }
