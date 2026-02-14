@@ -53,6 +53,12 @@ body {
   opacity: 0.8;
 }
 
+.cell.sunk {
+  background-color: #8b0000; /* rojo oscuro */
+  border: 1px solid #ffaaaa;
+  box-shadow: 0 0 6px #ff4444;
+}
+
 @keyframes hitPulse {
   0% { transform: scale(0.9); }
   50% { transform: scale(1.1); }

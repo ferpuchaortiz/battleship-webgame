@@ -22,6 +22,7 @@ function createEmptyBoard() {
   for (let y = 0; y < 10; y++) {
     const row = [];
     for (let x = 0; x < 10; x++) row.push(0);
+    row;
     board.push(row);
   }
   return board;
@@ -82,9 +83,12 @@ joinBtn.addEventListener("click", async () => {
       joinBtn.classList.add("hidden");
       gameArea.classList.remove("hidden");
       startPolling();
+    } else {
+      statusDiv.textContent = data.message || "No se pudo unir.";
     }
   } catch (err) {
     console.error(err);
+    statusDiv.textContent = "Error al conectar.";
   }
 });
 
@@ -112,7 +116,7 @@ function renderGame() {
   if (!gameState || !playerId) return;
 
   const { players, boards, turn, ready, winner } = gameState;
-  const allReady = players.every(p => ready[p]);
+  const allReady = players.length > 0 && players.every(p => ready[p]);
 
   if (winner) {
     statusDiv.textContent = `🏆 ¡El jugador ${winner} ha ganado la partida!`;
@@ -123,13 +127,15 @@ function renderGame() {
       turn === playerId ? "Es tu turno (disparos)" : `Turno del jugador ${turn}`;
   }
 
+  playersList.innerHTML = `<p>Jugadores: ${players.join(", ")}</p>`;
+
   myBoardContainer.innerHTML = "";
   enemyBoardsContainer.innerHTML = "";
 
   players.forEach(pId => {
     const isReady = ready[pId];
 
-    // FIX: usar backend después de listo
+    // FIX: antes de listo → localBoard, después → backend
     const boardData =
       pId === playerId && !isReady ? localBoard : boards[pId];
 
@@ -152,6 +158,7 @@ function renderGame() {
         if (pId === playerId && cell === 1) cellDiv.classList.add("own");
         if (cell === 2) cellDiv.classList.add("hit");
         if (cell === 3) cellDiv.classList.add("miss");
+        if (cell === 4) cellDiv.classList.add("sunk");
 
         if (!winner) {
           if (pId === playerId && placingShips && !isReady) {

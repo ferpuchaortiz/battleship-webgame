@@ -25,7 +25,7 @@ if ($game['turn'] != $shooter) {
 $board = $boards[$target];
 $cell = $board[$y][$x];
 
-if ($cell === 2 || $cell === 3) {
+if ($cell === 2 || $cell === 3 || $cell === 4) {
     echo json_encode(["success" => false, "message" => "Ya disparaste ahí."]);
     exit;
 }
@@ -43,6 +43,7 @@ if ($cell === 1) {
     // Detectar hundimiento
     if (isShipSunk($board, $x, $y)) {
         $sunk = true;
+        markShipAsSunk($board, $x, $y);
         $msg = "¡Hundiste un barco del jugador $target!";
     } else {
         $msg = "¡Impacto!";
@@ -62,10 +63,7 @@ if (!playerHasShips($board)) {
     $eliminated = true;
     $msg .= " ⚠️ El jugador $target ha sido eliminado.";
 
-    // Remover jugador de la lista
     $players = array_values(array_filter($players, fn($p) => $p != $target));
-
-    // Guardar nueva lista
     file_put_contents(__DIR__ . '/players.json', json_encode($players));
 }
 
@@ -149,4 +147,31 @@ function hasRemainingShipCells($board, $x, $y, &$visited) {
     }
 
     return false;
+}
+
+function markShipAsSunk(&$board, $x, $y) {
+    $visited = [];
+    floodFillSunk($board, $x, $y, $visited);
+}
+
+function floodFillSunk(&$board, $x, $y, &$visited) {
+    $key = "$x,$y";
+    if (isset($visited[$key])) return;
+    $visited[$key] = true;
+
+    $cell = $board[$y][$x];
+    if ($cell !== 2) return;
+
+    // Marcar como hundido
+    $board[$y][$x] = 4;
+
+    $dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    foreach ($dirs as $d) {
+        $nx = $x + $d[0];
+        $ny = $y + $d[1];
+
+        if ($nx >= 0 && $nx < 10 && $ny >= 0 && $ny < 10) {
+            floodFillSunk($board, $nx, $ny, $visited);
+        }
+    }
 }
