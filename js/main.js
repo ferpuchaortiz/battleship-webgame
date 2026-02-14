@@ -1,17 +1,5 @@
 console.log("Battleship Multijugador FFA iniciado");
 
-function createEmptyBoard() {
-  const board = [];
-  for (let y = 0; y < 10; y++) {
-    const row = [];
-    for (let x = 0; x < 10; x++) {
-      row.push(0); // 0 = vacío
-    }
-    board.push(row);
-  }
-  return board;
-}
-
 let playerId = null;
 let gameState = null;
 
@@ -21,6 +9,18 @@ const gameArea = document.getElementById("gameArea");
 const playerInfo = document.getElementById("playerInfo");
 const playersList = document.getElementById("playersList");
 const boardsContainer = document.getElementById("boardsContainer");
+
+function createEmptyBoard() {
+  const board = [];
+  for (let y = 0; y < 10; y++) {
+    const row = [];
+    for (let x = 0; x < 10; x++) {
+      row.push(0);
+    }
+    board.push(row);
+  }
+  return board;
+}
 
 let localBoard = createEmptyBoard();
 
@@ -63,15 +63,15 @@ function startPolling() {
 }
 
 function renderGame() {
-  statusDiv.textContent = (turn === playerId)
-  ? "Es tu turno"
-  : `Turno del jugador ${turn}`;
   if (!gameState || !playerId) return;
 
   const { players, boards, turn } = gameState;
 
-  playersList.innerHTML = `<p>Turno actual: Jugador ${turn}</p>
-    <p>Jugadores conectados: ${players.join(", ")}</p>`;
+  statusDiv.textContent = (turn === playerId)
+    ? "Es tu turno"
+    : `Turno del jugador ${turn}`;
+
+  playersList.innerHTML = `<p>Jugadores conectados: ${players.join(", ")}</p>`;
 
   boardsContainer.innerHTML = "";
 
@@ -79,12 +79,12 @@ function renderGame() {
     const boardData = boards[pId];
     if (!boardData) return;
 
-    const boardDiv = document.createElement("div");
-    boardDiv.className = "board";
-
     const title = document.createElement("p");
     title.textContent = `Tablero de jugador ${pId}` + (pId === playerId ? " (Tú)" : "");
     boardsContainer.appendChild(title);
+
+    const boardDiv = document.createElement("div");
+    boardDiv.className = "board";
     boardsContainer.appendChild(boardDiv);
 
     for (let y = 0; y < 10; y++) {
@@ -105,9 +105,15 @@ function renderGame() {
         }
 
         if (pId !== playerId && gameState.turn === playerId) {
+          cellDiv.style.cursor = "pointer";
           cellDiv.addEventListener("click", () => {
             shoot(pId, x, y);
           });
+        }
+
+        if (pId !== playerId && gameState.turn !== playerId) {
+          cellDiv.classList.add("disabled");
+          cellDiv.style.cursor = "not-allowed";
         }
 
         boardDiv.appendChild(cellDiv);

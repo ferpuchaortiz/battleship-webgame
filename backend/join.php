@@ -25,7 +25,6 @@ for ($y = 0; $y < 10; $y++) {
     $board[] = $row;
 }
 
-// colocación simple de 5 celdas con barco
 for ($i = 0; $i < 5; $i++) {
     $x = rand(0, 9);
     $y = rand(0, 9);

@@ -48,3 +48,8 @@ body {
 .cell.own {
   background-color: #2ecc71;
 }
+
+.cell.disabled {
+  opacity: 0.4;
+  cursor: not-allowed !important;
+}
