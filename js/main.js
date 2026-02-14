@@ -8,7 +8,8 @@ const statusDiv = document.getElementById("status");
 const gameArea = document.getElementById("gameArea");
 const playerInfo = document.getElementById("playerInfo");
 const playersList = document.getElementById("playersList");
-const boardsContainer = document.getElementById("boardsContainer");
+const myBoardContainer = document.getElementById("myBoardContainer");
+const enemyBoardsContainer = document.getElementById("enemyBoardsContainer");
 const resetBtn = document.getElementById("resetBtn");
 
 function createEmptyBoard() {
@@ -80,19 +81,20 @@ function renderGame() {
 
   playersList.innerHTML = `<p>Jugadores conectados: ${players.join(", ")}</p>`;
 
-  boardsContainer.innerHTML = "";
+  myBoardContainer.innerHTML = "";
+  enemyBoardsContainer.innerHTML = "";
 
   players.forEach((pId) => {
     const boardData = boards[pId];
     if (!boardData) return;
 
     const title = document.createElement("p");
-    title.textContent = `Tablero de jugador ${pId}` + (pId === playerId ? " (Tú)" : "");
-    boardsContainer.appendChild(title);
+    title.textContent = (pId === playerId)
+      ? `Jugador ${pId} (Tú)`
+      : `Jugador ${pId}`;
 
     const boardDiv = document.createElement("div");
     boardDiv.className = "board";
-    boardsContainer.appendChild(boardDiv);
 
     for (let y = 0; y < 10; y++) {
       for (let x = 0; x < 10; x++) {
@@ -125,6 +127,14 @@ function renderGame() {
 
         boardDiv.appendChild(cellDiv);
       }
+    }
+
+    if (pId === playerId) {
+      myBoardContainer.appendChild(title);
+      myBoardContainer.appendChild(boardDiv);
+    } else {
+      enemyBoardsContainer.appendChild(title);
+      enemyBoardsContainer.appendChild(boardDiv);
     }
   });
 }
