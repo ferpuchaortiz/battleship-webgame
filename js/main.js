@@ -111,10 +111,12 @@ function startPolling() {
 function renderGame() {
   if (!gameState || !playerId) return;
 
-  const { players, boards, turn, ready } = gameState;
+  const { players, boards, turn, ready, winner } = gameState;
   const allReady = players.every(p => ready[p]);
 
-  if (!allReady) {
+  if (winner) {
+    statusDiv.textContent = `🏆 ¡El jugador ${winner} ha ganado la partida!`;
+  } else if (!allReady) {
     statusDiv.textContent = "Fase de colocación: esperando a todos...";
   } else {
     statusDiv.textContent =
@@ -127,9 +129,7 @@ function renderGame() {
   players.forEach(pId => {
     const isReady = ready[pId];
 
-    // FIX APLICADO:
-    // Antes de estar listo → usar localBoard
-    // Después de estar listo → usar backend
+    // FIX: usar backend después de listo
     const boardData =
       pId === playerId && !isReady ? localBoard : boards[pId];
 
@@ -153,14 +153,14 @@ function renderGame() {
         if (cell === 2) cellDiv.classList.add("hit");
         if (cell === 3) cellDiv.classList.add("miss");
 
-        // Colocación
-        if (pId === playerId && placingShips && !isReady) {
-          cellDiv.addEventListener("click", () => placeShipAt(x, y));
-        }
+        if (!winner) {
+          if (pId === playerId && placingShips && !isReady) {
+            cellDiv.addEventListener("click", () => placeShipAt(x, y));
+          }
 
-        // Disparos
-        if (allReady && pId !== playerId && turn === playerId) {
-          cellDiv.addEventListener("click", () => shoot(pId, x, y));
+          if (allReady && pId !== playerId && turn === playerId) {
+            cellDiv.addEventListener("click", () => shoot(pId, x, y));
+          }
         }
 
         boardDiv.appendChild(cellDiv);
@@ -233,10 +233,11 @@ async function shoot(targetPlayerId, x, y) {
       return;
     }
 
-    if (data.sunk) {
-      statusDiv.textContent = `🔥 ${data.message}`;
-    } else {
-      statusDiv.textContent = data.message;
+    statusDiv.textContent = data.message;
+
+    if (data.winner) {
+      statusDiv.textContent = `🏆 ${data.message}`;
+      return;
     }
 
     fetchState();
@@ -246,7 +247,6 @@ async function shoot(targetPlayerId, x, y) {
     statusDiv.textContent = "Error al disparar.";
   }
 }
-
 
 /* Reset */
 resetBtn.addEventListener("click", async () => {

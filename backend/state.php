@@ -10,5 +10,6 @@ echo json_encode([
     "players" => $players,
     "boards" => $boards,
     "turn" => $game['turn'],
-    "ready" => $game['ready']
+    "ready" => $game['ready'],
+    "winner" => $game['winner'] ?? null
 ]);

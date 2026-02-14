@@ -11,6 +11,12 @@ $players = json_decode(file_get_contents(__DIR__ . '/players.json'), true);
 $boards = json_decode(file_get_contents(__DIR__ . '/boards.json'), true);
 $game = json_decode(file_get_contents(__DIR__ . '/game.json'), true);
 
+// Si ya hay ganador, no permitir más disparos
+if (isset($game['winner']) && $game['winner'] !== null) {
+    echo json_encode(["success" => false, "message" => "La partida ya terminó."]);
+    exit;
+}
+
 if ($game['turn'] != $shooter) {
     echo json_encode(["success" => false, "message" => "No es tu turno."]);
     exit;
@@ -26,6 +32,8 @@ if ($cell === 2 || $cell === 3) {
 
 $hit = false;
 $sunk = false;
+$eliminated = false;
+$winner = null;
 
 // Impacto
 if ($cell === 1) {
@@ -47,7 +55,42 @@ if ($cell === 1) {
 
 $boards[$target] = $board;
 
-// Avanzar turno
+// ------------------------------
+// DETECTAR ELIMINACIÓN
+// ------------------------------
+if (!playerHasShips($board)) {
+    $eliminated = true;
+    $msg .= " ⚠️ El jugador $target ha sido eliminado.";
+
+    // Remover jugador de la lista
+    $players = array_values(array_filter($players, fn($p) => $p != $target));
+
+    // Guardar nueva lista
+    file_put_contents(__DIR__ . '/players.json', json_encode($players));
+}
+
+// ------------------------------
+// DETECTAR GANADOR
+// ------------------------------
+if (count($players) === 1) {
+    $winner = $players[0];
+    $game['winner'] = $winner;
+    file_put_contents(__DIR__ . '/game.json', json_encode($game));
+
+    echo json_encode([
+        "success" => true,
+        "message" => "🏆 ¡El jugador $winner ha ganado la partida!",
+        "hit" => $hit,
+        "sunk" => $sunk,
+        "eliminated" => $eliminated,
+        "winner" => $winner
+    ]);
+    exit;
+}
+
+// ------------------------------
+// AVANZAR TURNO
+// ------------------------------
 $currentIndex = array_search($shooter, $players);
 $nextIndex = ($currentIndex + 1) % count($players);
 $game['turn'] = $players[$nextIndex];
@@ -59,13 +102,24 @@ echo json_encode([
     "success" => true,
     "message" => $msg,
     "hit" => $hit,
-    "sunk" => $sunk
+    "sunk" => $sunk,
+    "eliminated" => $eliminated,
+    "winner" => null
 ]);
 
 
 // ------------------------------
 // FUNCIONES AUXILIARES
 // ------------------------------
+
+function playerHasShips($board) {
+    foreach ($board as $row) {
+        foreach ($row as $cell) {
+            if ($cell === 1) return true;
+        }
+    }
+    return false;
+}
 
 function isShipSunk($board, $x, $y) {
     $visited = [];
@@ -79,13 +133,9 @@ function hasRemainingShipCells($board, $x, $y, &$visited) {
 
     $cell = $board[$y][$x];
 
-    // Si encontramos una parte intacta del barco → NO está hundido
     if ($cell === 1) return true;
-
-    // Si es agua o fuera de rango → no cuenta
     if ($cell !== 2) return false;
 
-    // Revisar vecinos
     $dirs = [[1,0],[-1,0],[0,1],[0,-1]];
     foreach ($dirs as $d) {
         $nx = $x + $d[0];
