@@ -1,0 +1,12 @@
+# Archivos de XAMPP
+*.log
+
+# Archivos temporales
+*.tmp
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de backend que no queremos subir aún
+backend/*.json
