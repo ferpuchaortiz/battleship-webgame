@@ -1,5 +1,17 @@
 console.log("Battleship Multijugador FFA iniciado");
 
+function createEmptyBoard() {
+  const board = [];
+  for (let y = 0; y < 10; y++) {
+    const row = [];
+    for (let x = 0; x < 10; x++) {
+      row.push(0); // 0 = vacío
+    }
+    board.push(row);
+  }
+  return board;
+}
+
 let playerId = null;
 let gameState = null;
 
@@ -9,6 +21,8 @@ const gameArea = document.getElementById("gameArea");
 const playerInfo = document.getElementById("playerInfo");
 const playersList = document.getElementById("playersList");
 const boardsContainer = document.getElementById("boardsContainer");
+
+let localBoard = createEmptyBoard();
 
 joinBtn.addEventListener("click", async () => {
   statusDiv.textContent = "Uniéndose a la partida...";
@@ -49,6 +63,9 @@ function startPolling() {
 }
 
 function renderGame() {
+  statusDiv.textContent = (turn === playerId)
+  ? "Es tu turno"
+  : `Turno del jugador ${turn}`;
   if (!gameState || !playerId) return;
 
   const { players, boards, turn } = gameState;
