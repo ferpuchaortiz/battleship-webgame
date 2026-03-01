@@ -1,54 +1,182 @@
+/* ============================
+   TEMA GENERAL — NAVAL / MILITAR
+============================ */
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #0b1522;
-  color: #f5f5f5;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at center, #0a1a2a, #050b12 70%);
+  color: #e6edf3;
   text-align: center;
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+h1 {
+  font-size: 42px;
+  letter-spacing: 3px;
+  color: #4da3ff;
+  text-shadow: 0 0 12px #1e90ff;
+  margin-bottom: 10px;
+}
+
+h3 {
+  color: #9ecbff;
+  margin-top: 25px;
+  text-shadow: 0 0 6px #1e90ff55;
 }
 
 .hidden {
   display: none;
 }
 
-#app {
-  margin-top: 20px;
+/* ============================
+   LOBBY
+============================ */
+
+#lobbyArea {
+  background: rgba(20, 35, 55, 0.6);
+  padding: 15px;
+  border: 1px solid #2c4a6e;
+  border-radius: 8px;
+  width: 320px;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 0 12px #00000055;
 }
 
-#status {
+#lobbyArea input {
+  padding: 8px;
+  border-radius: 4px;
+  border: none;
+  margin-right: 5px;
+  width: 140px;
+}
+
+#lobbyStatus {
   margin-top: 10px;
+  color: #7fb3ff;
 }
 
-#playersList {
-  margin: 15px 0;
+/* ============================
+   BOTONES GENERALES
+============================ */
+
+button {
+  padding: 10px 18px;
+  background: #1f3b57;
+  color: white;
+  border: 1px solid #3a6ea5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 14px;
+  margin: 5px;
 }
+
+button:hover {
+  background: #2c527a;
+  box-shadow: 0 0 8px #3a6ea5aa;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ============================
+   SELECTOR DE BARCOS
+============================ */
+
+#shipSelector {
+  margin: 20px 0;
+  padding: 12px;
+  background: rgba(15, 25, 40, 0.7);
+  border: 1px solid #2c4a6e;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 0 12px #00000055;
+}
+
+.shipBtn {
+  background: #2c4a6e;
+  border: 1px solid #4d7bb3;
+}
+
+.shipBtn:hover {
+  background: #3b6a9a;
+}
+
+.shipBtn.selected {
+  background: #2ecc71;
+  border-color: #2ecc71;
+  box-shadow: 0 0 10px #2ecc71aa;
+}
+
+/* Botón orientación */
+#orientationBtn {
+  background: #8e44ad;
+  border-color: #b57bd6;
+}
+
+#orientationBtn:hover {
+  background: #9b59b6;
+}
+
+/* Botón listo */
+#readyBtn {
+  background: #27ae60;
+  border-color: #2ecc71;
+}
+
+#readyBtn.disabled {
+  background: #7f8c8d;
+  border-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+/* ============================
+   TABLEROS
+============================ */
 
 .board {
   display: inline-grid;
-  grid-template-columns: repeat(10, 24px);
-  grid-template-rows: repeat(10, 24px);
-  gap: 2px;
-  margin: 10px;
-  border: 1px solid #fff;
+  grid-template-columns: repeat(10, 32px);
+  grid-template-rows: repeat(10, 32px);
+  gap: 3px;
+  margin: 15px;
+  padding: 12px;
+  background: #0f1d2e;
+  border-radius: 10px;
+  border: 1px solid #2c4a6e;
+  box-shadow: 0 0 15px #00000066;
 }
 
 .cell {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   background-color: #1b2a3a;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
+  border-radius: 4px;
+  transition: 0.15s ease;
+}
+
+.cell:hover {
+  background-color: #24364b;
 }
 
 /* Barco propio */
 .cell.own {
   background-color: #2ecc71;
+  box-shadow: 0 0 6px #2ecc71aa;
 }
 
 /* Impacto */
 .cell.hit {
   background-color: #e74c3c;
   animation: hitFlash 0.25s ease-out, hitShake 0.3s ease-out;
-  box-shadow: 0 0 6px #ff7675;
+  box-shadow: 0 0 8px #ff7675;
 }
 
 @keyframes hitFlash {
@@ -67,7 +195,7 @@ body {
 /* Agua */
 .cell.miss {
   background-color: #3498db;
-  opacity: 0.8;
+  opacity: 0.85;
   animation: splash 0.4s ease-out;
 }
 
@@ -80,107 +208,21 @@ body {
 .cell.sunk {
   background-color: #8b0000;
   border: 1px solid #ffaaaa;
-  box-shadow: 0 0 8px #ff4444;
+  box-shadow: 0 0 12px #ff4444;
   animation: sunkPulse 1s ease-in-out infinite alternate;
 }
 
 @keyframes sunkPulse {
   0% { box-shadow: 0 0 4px #ff4444; }
-  100% { box-shadow: 0 0 10px #ff7777; }
+  100% { box-shadow: 0 0 12px #ff7777; }
 }
 
-/* Selector de barcos */
-#shipSelector {
-  margin: 20px 0;
-}
+/* ============================
+   HISTORIAL DE BATALLA
+============================ */
 
-.shipBtn {
-  margin: 5px;
-  padding: 8px 12px;
-  background-color: #34495e;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.shipBtn.selected {
-  background-color: #2ecc71;
-  font-weight: bold;
-}
-
-/* Botón de orientación */
-#orientationBtn {
-  margin-left: 5px;
-  padding: 4px 10px;
-  background-color: #8e44ad;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* Botón listo */
-#readyBtn {
-  margin-top: 10px;
-  padding: 6px 14px;
-  background-color: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-#readyBtn.disabled {
-  background-color: #7f8c8d;
-  cursor: not-allowed;
-}
-
-/* Historial de batalla */
 .battle-log {
-  width: 80%;
-  max-width: 600px;
-  margin: 20px auto;
-  background-color: #111a28;
-  border: 1px solid #3a4a5a;
-  padding: 10px;
-  height: 180px;
-  overflow-y: auto;
-  text-align: left;
-  font-size: 14px;
-  border-radius: 6px;
-}
-
-.battle-log-entry {
-  margin-bottom: 6px;
-  padding: 4px 6px;
-  border-left: 3px solid #2ecc71;
-}
-
-.battle-log-entry.hit {
-  border-left-color: #e74c3c;
-}
-
-.battle-log-entry.miss {
-  border-left-color: #3498db;
-}
-
-.battle-log-entry.sunk {
-  border-left-color: #ff4444;
-}
-
-.battle-log-entry.eliminated {
-  border-left-color: #ffcc00;
-}
-
-.battle-log-entry.winner {
-  border-left-color: #9b59b6;
-  font-weight: bold;
-}
-
-/* CHAT */
-.chat-box {
-  width: 80%;
+  width: 90%;
   max-width: 600px;
   margin: 20px auto;
   background-color: #0f1a2b;
@@ -191,21 +233,31 @@ body {
   text-align: left;
   font-size: 14px;
   border-radius: 6px;
+  box-shadow: 0 0 10px #00000055;
 }
 
-.chat-message {
-  margin-bottom: 6px;
-  padding: 4px 6px;
-}
+/* ============================
+   CHAT
+============================ */
 
-.chat-message .player {
-  font-weight: bold;
-  color: #2ecc71;
+.chat-box {
+  width: 90%;
+  max-width: 600px;
+  margin: 20px auto;
+  background-color: #0f1a2b;
+  border: 1px solid #3a4a5a;
+  padding: 10px;
+  height: 180px;
+  overflow-y: auto;
+  text-align: left;
+  font-size: 14px;
+  border-radius: 6px;
+  box-shadow: 0 0 10px #00000055;
 }
 
 .chat-input {
   margin: 10px auto;
-  width: 80%;
+  width: 90%;
   max-width: 600px;
   display: flex;
   gap: 10px;
@@ -219,10 +271,238 @@ body {
 }
 
 #chatSendBtn {
-  padding: 8px 14px;
   background-color: #2980b9;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  border-color: #3498db;
+}
+
+#chatSendBtn:hover {
+  background-color: #3498db;
+}
+
+/* ============================
+   RESPONSIVE
+============================ */
+
+@media (max-width: 600px) {
+  .board {
+    grid-template-columns: repeat(10, 24px);
+    grid-template-rows: repeat(10, 24px);
+  }
+
+  .cell {
+    width: 24px;
+    height: 24px;
+  }
+
+  #shipSelector {
+    transform: scale(0.9);
+  }
+}
+/* ============================
+   RADAR ANIMADO — ESTILO SONAR NAVAL
+============================ */
+
+.radar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.radar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,0,0.15) 0%, rgba(0,255,0,0.05) 60%, transparent 70%);
+  border: 2px solid rgba(0,255,0,0.3);
+  box-shadow: 0 0 12px rgba(0,255,0,0.3);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Líneas circulares */
+.radar::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 35%, rgba(0,255,0,0.15) 36%, transparent 37%),
+    radial-gradient(circle, transparent 65%, rgba(0,255,0,0.15) 66%, transparent 67%);
+  pointer-events: none;
+}
+
+/* Haz giratorio */
+.radar::after {
+  content: "";
+  position: absolute;
+  width: 50%;
+  height: 2px;
+  background: rgba(0,255,0,0.4);
+  top: 50%;
+  left: 50%;
+  transform-origin: left center;
+  animation: radarSweep 3s linear infinite;
+  box-shadow: 0 0 10px rgba(0,255,0,0.6);
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Ajuste para móviles */
+@media (max-width: 600px) {
+  .radar {
+    width: 200px;
+    height: 200px;
+  }
+}
+/* ============================
+   LUCES LED PARPADEANTES EN EL TABLERO
+============================ */
+
+.cell::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  background: #00ff55;
+  border-radius: 50%;
+  opacity: 0.35;
+  box-shadow: 0 0 6px #00ff55;
+  animation: ledBlink 2.2s infinite ease-in-out;
+  pointer-events: none;
+}
+
+/* LED más fuerte en barcos propios */
+.cell.own::after {
+  background: #2ecc71;
+  box-shadow: 0 0 8px #2ecc71;
+  opacity: 0.7;
+}
+
+/* LED rojo en impacto */
+.cell.hit::after {
+  background: #ff4444;
+  box-shadow: 0 0 10px #ff4444;
+  opacity: 1;
+}
+
+/* LED azul en agua */
+.cell.miss::after {
+  background: #3498db;
+  box-shadow: 0 0 8px #3498db;
+  opacity: 0.8;
+}
+
+/* LED rojo intenso en hundido */
+.cell.sunk::after {
+  background: #ff0000;
+  box-shadow: 0 0 12px #ff0000;
+  opacity: 1;
+  animation: ledBlinkFast 1s infinite ease-in-out;
+}
+
+/* Animación suave */
+@keyframes ledBlink {
+  0% { opacity: 0.2; transform: scale(0.9); }
+  50% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0.2; transform: scale(0.9); }
+}
+
+/* Animación rápida para hundidos */
+@keyframes ledBlinkFast {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}
+/* ============================================================
+   LUCES LED QUE CAMBIAN SEGÚN EL TURNO
+   Usa: <body data-turn="me"> o "enemy" o "placing"
+============================================================ */
+
+/* LED base */
+.cell::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.45;
+  pointer-events: none;
+  transition: 0.3s ease;
+}
+
+/* ============================
+   FASE DE COLOCACIÓN (AZUL)
+============================ */
+body[data-turn="placing"] .cell::after {
+  background: #3498db;
+  box-shadow: 0 0 8px #3498db;
+  animation: ledPulseBlue 2s infinite ease-in-out;
+}
+
+@keyframes ledPulseBlue {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0.3; transform: scale(0.9); }
+}
+
+/* ============================
+   TU TURNO (VERDE)
+============================ */
+body[data-turn="me"] .cell::after {
+  background: #2ecc71;
+  box-shadow: 0 0 10px #2ecc71;
+  animation: ledPulseGreen 1.4s infinite ease-in-out;
+}
+
+@keyframes ledPulseGreen {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}
+
+/* ============================
+   TURNO ENEMIGO (ROJO)
+============================ */
+body[data-turn="enemy"] .cell::after {
+  background: #ff4444;
+  box-shadow: 0 0 10px #ff4444;
+  animation: ledPulseRed 1.2s infinite ease-in-out;
+}
+
+@keyframes ledPulseRed {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+  100% { opacity: 0.3; transform: scale(0.9); }
+}
+
+/* ============================
+   ESTADOS ESPECIALES (se mantienen)
+============================ */
+
+.cell.hit::after {
+  background: #ff0000 !important;
+  box-shadow: 0 0 12px #ff0000 !important;
+  opacity: 1 !important;
+}
+
+.cell.miss::after {
+  background: #3498db !important;
+  box-shadow: 0 0 10px #3498db !important;
+}
+
+.cell.sunk::after {
+  background: #ff0000 !important;
+  box-shadow: 0 0 14px #ff0000 !important;
+  animation: ledPulseRed 0.8s infinite ease-in-out !important;
 }

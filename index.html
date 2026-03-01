@@ -2,13 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Battleship FFA</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <title>Battleship</title>
+  <link rel="stylesheet" href="css/styles.css?v=100"/>
 </head>
 <body>
   <div id="app">
-    <h1>Battleship Multijugador FFA</h1>
-
+    <h1>Battleship</h1>
     <!-- LOBBY -->
     <h3>Lobby</h3>
     <div id="lobbyArea">
@@ -37,15 +36,20 @@
         <button class="shipBtn" data-size="5">Portaaviones (5)</button>
         <button class="shipBtn" data-size="4">Acorazado (4)</button>
         <button class="shipBtn" data-size="3">Crucero (3)</button>
-        <button class="shipBtn" data-size="3">Submarino (3)</button>
-        <button class="shipBtn" data-size="2">Destructor (2)</button>
+        <button class="shipBtn" data-size="2">Submarino (2)</button>
+        <button class="shipBtn" data-size="1">Destructor (1)</button>
 
         <button id="orientationBtn">Horizontal</button>
         <button id="readyBtn">Listo</button>
       </div>
 
       <h3>Tu tablero</h3>
-      <div id="myBoardContainer"></div>
+      <div class="radar-wrapper">
+  <div class="radar"></div>
+  <div id="myBoardContainer"></div>
+</div>
+
+
 
       <h3>Tableros enemigos</h3>
       <div id="enemyBoardsContainer"></div>
